@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GradeWise | CGPA Calculator</title>
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @layer base {
+            body { font-family: 'Inter', sans-serif; }
+            h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; }
+        }
+        
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { 
+            background: #e5e7eb; 
+            border-radius: 10px; 
+        }
+        .dark .custom-scroll::-webkit-scrollbar-thumb { background: #374151; }
+        
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .subject-row {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+</head>
+<body class="bg-[#FDFDFC] dark:bg-[#0A0A0A] text-[#1A1A1A] dark:text-[#EDEDED] transition-colors duration-300 selection:bg-orange-100 dark:selection:bg-orange-900/30">
+
+    <div id="app" class="">
+        <!-- Decorative Background -->
+        <div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+            <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-400/10 dark:bg-orange-500/5 blur-[120px] rounded-full"></div>
+            <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-400/10 dark:bg-blue-500/5 blur-[120px] rounded-full"></div>
+        </div>
+
+        <!-- Header -->
+        <header class="border-b border-gray-100 dark:border-white/5 bg-white/80 dark:bg-black/40 backdrop-blur-md sticky top-0 z-50">
+            <div class="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
+                        <i data-lucide="graduation-cap" size="24"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-xl tracking-tight leading-none">GradeWise</h1>
+                        <p class="text-[10px] text-gray-500 dark:text-gray-400 font-medium uppercase tracking-widest mt-1">Smart Analytics</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-orange-500 transition-colors">
+                        <i id="theme-icon" data-lucide="moon" size="20"></i>
+                    </button>
+                    <button onclick="resetAll()" class="hidden sm:flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+                        <i data-lucide="rotate-ccw" size="18"></i>
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-5xl mx-auto px-6 py-12 md:py-16">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                
+                <!-- Main Input Section -->
+                <div class="lg:col-span-8 space-y-8">
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                        <div>
+                            <div class="flex items-center gap-2 text-orange-500 mb-2">
+                                <i data-lucide="clipboard-list" size="18"></i>
+                                <span class="text-xs font-bold uppercase tracking-wider">Entries</span>
+                            </div>
+                            <h2 class="text-3xl font-black tracking-tight dark:text-white">Course Overview</h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2 font-medium">Add your subjects and credits to calculate your CGPA.</p>
+                        </div>
+                        <button onclick="addSubject()" class="flex items-center justify-center gap-2 bg-orange-500 text-white px-6 py-3 rounded-2xl text-sm font-bold hover:bg-orange-600 transition-all shadow-xl shadow-orange-500/25 active:scale-95 group">
+                            <i data-lucide="plus" size="20"></i>
+                            New Subject
+                        </button>
+                    </div>
+
+                    <div id="subjects-container" class="space-y-4">
+                        <!-- Subjects will be injected here -->
+                    </div>
+                </div>
+
+                <!-- Sticky Sidebar -->
+                <aside class="lg:col-span-4 lg:sticky lg:top-32 h-fit space-y-8">
+                    <div class="relative">
+                        <div class="absolute -inset-0.5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-[2.5rem] blur opacity-20"></div>
+                        
+                        <div class="relative bg-white dark:bg-[#121212] rounded-[2.2rem] border border-gray-100 dark:border-white/10 p-10 shadow-2xl">
+                            <div class="flex items-center gap-4 mb-10">
+                                <div class="w-12 h-12 rounded-2xl bg-orange-500/10 dark:bg-orange-500/20 flex items-center justify-center text-orange-500">
+                                    <i data-lucide="layout-grid" size="24"></i>
+                                </div>
+                                <h3 class="font-extrabold text-xl tracking-tight dark:text-white">Scoreboard</h3>
+                            </div>
+
+                            <div class="space-y-8">
+                                <div class="relative text-center py-10 bg-gray-50 dark:bg-white/[0.02] rounded-[2.5rem] border border-gray-100 dark:border-white/5">
+                                    <span class="text-[11px] font-black text-orange-500 uppercase tracking-[0.25em]">GPA Score</span>
+                                    <div id="cgpa-display" class="text-7xl font-black mt-2 tabular-nums tracking-tighter dark:text-white">0.00</div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="bg-gray-50 dark:bg-white/[0.02] p-5 rounded-[2rem] border border-gray-100 dark:border-white/5 text-center">
+                                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Credits</span>
+                                        <span id="total-credits" class="text-2xl font-black dark:text-white">0</span>
+                                    </div>
+                                    <div class="bg-gray-50 dark:bg-white/[0.02] p-5 rounded-[2rem] border border-gray-100 dark:border-white/5 text-center">
+                                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Points</span>
+                                        <span id="total-points" class="text-2xl font-black dark:text-white">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-8 rounded-[2.2rem] bg-black text-white shadow-2xl relative overflow-hidden">
+                        <p class="relative text-sm leading-relaxed font-medium opacity-80 italic">
+                            "Excellence is not a skill, it’s an attitude."
+                        </p>
+                        <p class="relative text-[10px] font-bold uppercase tracking-[0.2em] mt-4 text-orange-400">
+                            KEEP PUSHING • GRADEWISE
+                        </p>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const GRADE_POINTS = { 'A+': 10, 'A': 9, 'B+': 8, 'B': 7, 'C': 6, 'D': 5, 'F': 0 };
+        let subjects = JSON.parse(localStorage.getItem('cgpa-subjects')) || [
+            { id: Date.now(), name: '', credits: 0, grade: 'A+' }
+        ];
+
+        function init() {
+            lucide.createIcons();
+            renderSubjects();
+            updateStats();
+            
+            // Check preference
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                updateThemeIcon(true);
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.theme = isDark ? 'dark' : 'light';
+            updateThemeIcon(isDark);
+        }
+
+        function updateThemeIcon(isDark) {
+            const icon = document.getElementById('theme-icon');
+            icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            lucide.createIcons();
+        }
+
+        function addSubject() {
+            subjects.push({ id: Date.now(), name: '', credits: 0, grade: 'A+' });
+            saveAndRender();
+        }
+
+        function removeSubject(id) {
+            if (subjects.length > 1) {
+                subjects = subjects.filter(s => s.id !== id);
+                saveAndRender();
+            }
+        }
+
+        function updateSubject(id, field, value) {
+            const subject = subjects.find(s => s.id === id);
+            if (subject) {
+                subject[field] = field === 'credits' ? (parseFloat(value) || 0) : value;
+                saveAndRender();
+            }
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('cgpa-subjects', JSON.stringify(subjects));
+            renderSubjects();
+            updateStats();
+        }
+
+        function renderSubjects() {
+            const container = document.getElementById('subjects-container');
+            container.innerHTML = subjects.map(s => `
+                <div class="subject-row p-5 rounded-3xl bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 shadow-sm flex flex-col md:flex-row gap-5 items-start md:items-end group">
+                    <div class="flex-1 w-full space-y-2">
+                        <label class="text-[11px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">Title</label>
+                        <input type="text" placeholder="e.g. Mathematics" value="${s.name}" 
+                            oninput="updateSubject(${s.id}, 'name', this.value)"
+                            class="w-full bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-5 py-3.5 text-sm font-medium focus:ring-2 focus:ring-orange-500/50 transition-all dark:text-white">
+                    </div>
+                    <div class="w-full md:w-32 space-y-2">
+                        <label class="text-[11px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">Credits</label>
+                        <input type="number" placeholder="0" value="${s.credits || ''}" 
+                            oninput="updateSubject(${s.id}, 'credits', this.value)"
+                            class="w-full bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-5 py-3.5 text-sm font-bold focus:ring-2 focus:ring-orange-500/50 text-center dark:text-white">
+                    </div>
+                    <div class="w-full md:w-32 space-y-2">
+                        <label class="text-[11px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">Grade</label>
+                        <select onchange="updateSubject(${s.id}, 'grade', this.value)"
+                            class="w-full bg-gray-50 dark:bg-white/5 appearance-none border-none rounded-2xl px-5 py-3.5 text-sm font-bold focus:ring-2 focus:ring-orange-500/50 dark:text-white cursor-pointer">
+                            ${Object.keys(GRADE_POINTS).map(g => `<option value="${g}" ${s.grade === g ? 'selected' : ''}>${g}</option>`).join('')}
+                        </select>
+                    </div>
+                    <button onclick="removeSubject(${s.id})" ${subjects.length === 1 ? 'disabled' : ''}
+                        class="md:mb-1.5 p-3 rounded-2xl text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-0 transition-all">
+                        <i data-lucide="trash-2" size="22"></i>
+                    </button>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function updateStats() {
+            let totalCredits = 0;
+            let totalGradePoints = 0;
+
+            subjects.forEach(s => {
+                totalCredits += s.credits;
+                totalGradePoints += s.credits * GRADE_POINTS[s.grade];
+            });
+
+            const cgpa = totalCredits > 0 ? (totalGradePoints / totalCredits).toFixed(2) : '0.00';
+            
+            document.getElementById('cgpa-display').innerText = cgpa;
+            document.getElementById('total-credits').innerText = totalCredits;
+            document.getElementById('total-points').innerText = totalGradePoints;
+        }
+
+        function resetAll() {
+            if (confirm('Clear all data?')) {
+                subjects = [{ id: Date.now(), name: '', credits: 0, grade: 'A+' }];
+                saveAndRender();
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
